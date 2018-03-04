@@ -1,0 +1,56 @@
+const express = require('express');
+const hbs = require('hbs');
+const fs = require('fs');
+
+var app = express();
+
+hbs.registerPartials(__dirname + '/views/partials');
+
+app.set('view engine','hbs')
+
+
+// middle ware for printing and saving logs
+app.use((req, res, next) => {
+    var now = new Date().toString();
+    var log = `${now} method:  ${req.method} path:  ${req.path}`;
+    console.log(log);
+    fs.appendFile('server.log', log + '\n', (err) =>{
+      if(err){
+        console.log(err);
+      }
+    });
+    next();
+});
+
+// maintenance page
+// app.use((req, res, next) => {
+//     res.render('maintenance.hbs');
+// });
+
+app.use(express.static(__dirname + '/public'))
+
+// year helper that can be used in views
+hbs.registerHelper('getCurrentYear', () =>{
+  return new Date().getFullYear();
+});
+
+// upper case helper that can be used in views
+hbs.registerHelper('screamIt', (text) =>{
+  return text.toUpperCase();
+});
+
+app.get('/', (req, res) => {
+    res.render('home.hbs',{
+      pageTitle: 'Home',
+      welcomeMessage: 'Welcome to some website'
+    });
+});
+
+
+app.get('/about', (req, res) => {
+  res.render('about.hbs',{
+    pageTitle: 'About',
+  });
+});
+
+app.listen(3000);
